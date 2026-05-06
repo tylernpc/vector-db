@@ -1,65 +1,147 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
 
 export default function Home() {
+  const [message, setMessage] = useState("");
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!message.trim()) return;
+
+    setLoading(true);
+    setResult(null);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/summarization", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Request failed");
+      }
+
+      setResult(data.result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen flex flex-col">
+      {/* Hero */}
+      <section className="flex flex-col items-center justify-center text-center px-6 py-24 gap-4">
+        <h1 className="text-5xl font-bold tracking-tight">Summarization API</h1>
+        <p className="text-lg max-w-xl opacity-70">
+          A lightweight endpoint powered by GPT-4o-mini. Send any text and get a
+          concise, intelligent response back in milliseconds.
+        </p>
+        <a
+          href="#demo"
+          className="mt-4 px-6 py-3 rounded-lg bg-foreground text-background font-semibold hover:opacity-80 transition-opacity"
+        >
+          Try it live
+        </a>
+      </section>
+
+      {/* API Reference */}
+      <section className="px-6 py-16 max-w-3xl mx-auto w-full">
+        <h2 className="text-2xl font-semibold mb-6">API Reference</h2>
+        <div className="rounded-xl border border-current/10 overflow-hidden">
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-current/10">
+            <span className="px-2 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-400">
+              POST
+            </span>
+            <code className="font-mono text-sm">/api/summarization</code>
+          </div>
+
+          <div className="px-5 py-4 grid gap-6 text-sm">
+            <div>
+              <p className="font-semibold mb-2 opacity-60 uppercase text-xs tracking-wide">
+                Request body
+              </p>
+              <pre className="rounded-lg bg-current/5 p-4 overflow-x-auto font-mono">{`{
+  "message": "string"   // required — the text to process
+}`}</pre>
+            </div>
+
+            <div>
+              <p className="font-semibold mb-2 opacity-60 uppercase text-xs tracking-wide">
+                Response
+              </p>
+              <pre className="rounded-lg bg-current/5 p-4 overflow-x-auto font-mono">{`// 200 OK
+{ "result": "string" }
+
+// 400 Bad Request
+{ "error": "message is required" }
+
+// 500 Internal Server Error
+{ "error": "string" }`}</pre>
+            </div>
+
+            <div>
+              <p className="font-semibold mb-2 opacity-60 uppercase text-xs tracking-wide">
+                Example (curl)
+              </p>
+              <pre className="rounded-lg bg-current/5 p-4 overflow-x-auto font-mono">{`curl -X POST /api/summarization \\
+  -H "Content-Type: application/json" \\
+  -d '{"message": "Summarize the history of the internet."}'`}</pre>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </section>
+
+      {/* Live Demo */}
+      <section id="demo" className="px-6 py-16 max-w-3xl mx-auto w-full">
+        <h2 className="text-2xl font-semibold mb-6">Live Demo</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Enter a message or paste text to summarize..."
+            rows={5}
+            className="w-full rounded-xl border border-current/20 bg-current/5 px-4 py-3 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-current/30"
+          />
+          <button
+            type="submit"
+            disabled={loading || !message.trim()}
+            className="self-start px-6 py-3 rounded-lg bg-foreground text-background font-semibold disabled:opacity-40 hover:opacity-80 transition-opacity"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            {loading ? "Thinking..." : "Send"}
+          </button>
+        </form>
+
+        {error && (
+          <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {error}
+          </div>
+        )}
+
+        {result && (
+          <div className="mt-6 rounded-xl border border-current/10 bg-current/5 px-5 py-4">
+            <p className="text-xs font-semibold uppercase tracking-wide opacity-50 mb-3">
+              Response
+            </p>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+              {result}
+            </p>
+          </div>
+        )}
+      </section>
+
+      <footer className="mt-auto px-6 py-8 text-center text-xs opacity-40">
+        Summarization API &mdash; powered by GPT-4o-mini
+      </footer>
+    </main>
   );
 }
