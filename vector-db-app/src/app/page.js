@@ -8,6 +8,43 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [docContent, setDocContent] = useState("");
+  const [docSource, setDocSource] = useState("");
+  const [docSaving, setDocSaving] = useState(false);
+  const [docStatus, setDocStatus] = useState(null);
+
+  async function handleDocSave(e) {
+    e.preventDefault();
+    if (!docContent.trim()) {
+      return;
+    }
+
+    setDocSaving(true);
+    setDocStatus(null);
+
+    try {
+      const metadata = docSource.trim() ? { source: docSource.trim() } : {};
+      const res = await fetch("/api/documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: docContent, metadata }),
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Request failed");
+      }
+
+      setDocStatus({ ok: true, message: `Saved — document ID: ${data.id}` });
+      setDocContent("");
+      setDocSource("");
+    } catch (err) {
+      setDocStatus({ ok: false, message: err.message });
+    } finally {
+      setDocSaving(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!message.trim()) return;
@@ -40,7 +77,7 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col">
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center text-center px-6 py-24 gap-4">
+      <section className="flex flex-col items-center justify-center text-center px-6 pt-24 gap-4">
         <h1 className="text-5xl font-bold tracking-tight">Summarization API</h1>
         <p className="text-lg max-w-xl opacity-70">
           A lightweight endpoint powered by GPT-4o-mini. Send any text and get a
@@ -135,6 +172,49 @@ export default function Home() {
             <p className="text-sm leading-relaxed whitespace-pre-wrap">
               {result}
             </p>
+          </div>
+        )}
+      </section>
+
+      {/* Save Document */}
+      <section className="px-6 py-16 max-w-3xl mx-auto w-full">
+        <h2 className="text-2xl font-semibold mb-2">Save Document</h2>
+        <p className="text-sm opacity-60 mb-6">
+          Embeds text via OpenAI and stores it in the vector database.
+        </p>
+        <form onSubmit={handleDocSave} className="flex flex-col gap-4">
+          <textarea
+            value={docContent}
+            onChange={(e) => setDocContent(e.target.value)}
+            placeholder="Paste or type the content to embed..."
+            rows={6}
+            className="w-full rounded-xl border border-current/20 bg-current/5 px-4 py-3 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-current/30"
+          />
+          <input
+            type="text"
+            value={docSource}
+            onChange={(e) => setDocSource(e.target.value)}
+            placeholder="Source label (optional) — e.g. docs/intro.md"
+            className="w-full rounded-xl border border-current/20 bg-current/5 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-current/30"
+          />
+          <button
+            type="submit"
+            disabled={docSaving || !docContent.trim()}
+            className="self-start px-6 py-3 rounded-lg bg-foreground text-background font-semibold disabled:opacity-40 hover:opacity-80 transition-opacity"
+          >
+            {docSaving ? "Embedding..." : "Save to DB"}
+          </button>
+        </form>
+
+        {docStatus && (
+          <div
+            className={`mt-6 rounded-xl border px-4 py-3 text-sm ${
+              docStatus.ok
+                ? "border-green-500/30 bg-green-500/10 text-green-400"
+                : "border-red-500/30 bg-red-500/10 text-red-400"
+            }`}
+          >
+            {docStatus.message}
           </div>
         )}
       </section>
