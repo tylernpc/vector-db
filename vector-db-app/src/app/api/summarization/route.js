@@ -1,16 +1,23 @@
 import { ChatOpenAI } from "@langchain/openai";
 
-export async function POST(req) {
-  const { text } = await req.json();
+const model = new ChatOpenAI({ model: "gpt-4o-mini" });
 
-  const model = new ChatOpenAI({ model: "gpt-4o" });
+export async function POST(request) {
+  const { message } = await request.json();
 
-  const result = await model.invoke([
-    {
-      role: "user",
-      content: `Summarize the following text:\n\n${text}`,
-    },
-  ]);
+  if (!message) {
+    return Response.json({ error: "message is required" }, { status: 400 });
+  }
 
-  return Response.json({ summary: result.content });
+  try {
+    const response = await model.invoke([{ role: "user", content: message }]);
+
+    return Response.json({ result: response.content });
+  } catch (err) {
+    console.error("OpenAI error:", err);
+    return Response.json(
+      { error: err.message ?? "Something went wrong" },
+      { status: 500 },
+    );
+  }
 }
