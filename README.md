@@ -14,7 +14,7 @@ A Next.js application for embedding documents into a vector database and summari
 
 ```mermaid
 flowchart TD
-    User([User / Browser])
+    User([Client])
 
     subgraph Frontend["Frontend — Next.js Page (src/app/page.js)"]
         SumForm[Summarization Form]
