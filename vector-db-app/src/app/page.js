@@ -29,8 +29,9 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: docContent, metadata }),
       });
-      
+
       const data = await res.json();
+
       if (!res.ok) {
         throw new Error(data.error || "Request failed");
       }
@@ -47,7 +48,9 @@ export default function Home() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim()) {
+      return;
+    }
 
     setLoading(true);
     setResult(null);
