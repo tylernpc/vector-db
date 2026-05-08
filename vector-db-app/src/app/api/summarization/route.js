@@ -17,6 +17,7 @@ export async function POST(request) {
     return Response.json({ result: response.content });
   } catch (err) {
     console.error("OpenAI error:", err);
+
     return Response.json(
       { error: err.message ?? "Something went wrong" },
       { status: 500 },
@@ -24,18 +25,18 @@ export async function POST(request) {
   }
 }
 
-export const run = async () => {
-  const client = createClient(url, supabaseKey);
-  const vectorStore = await SupabaseVectorStore.fromTexts(
-    ["Hello world", "Bye bye", "What's this?"],
-    [{ id: 2 }, { id: 1 }, { id: 3 }],
-    new OpenAIEmbeddings(),
-    {
-      client,
-      tableName: "documents",
-      queryName: "match_documents",
-    },
-  );
-  const resultOne = await vectorStore.similaritySearch("Hello world", 1);
-  console.log(resultOne);
-};
+// export const run = async () => {
+//   const client = createClient(url, supabaseKey);
+//   const vectorStore = await SupabaseVectorStore.fromTexts(
+//     ["Hello world", "Bye bye", "What's this?"],
+//     [{ id: 2 }, { id: 1 }, { id: 3 }],
+//     new OpenAIEmbeddings(),
+//     {
+//       client,
+//       tableName: "documents",
+//       queryName: "match_documents",
+//     },
+//   );
+//   const resultOne = await vectorStore.similaritySearch("Hello world", 1);
+//   console.log(resultOne);
+// };

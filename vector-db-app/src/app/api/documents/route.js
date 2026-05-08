@@ -2,7 +2,6 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { createClient } from "@supabase/supabase-js";
 
 const embedder = new OpenAIEmbeddings({ model: "text-embedding-ada-002" });
-
 const supabaseUrl = process.env.SUPABASE_URL.replace(/\/rest\/v1\/?$/, "");
 const supabase = createClient(supabaseUrl, process.env.SUPABASE_SECRET_KEY);
 
